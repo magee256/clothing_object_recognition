@@ -1,0 +1,9 @@
+- Downloaded from Google drive linked on this page:
+  http://mmlab.ie.cuhk.edu.hk/projects/DeepFashion/AttributePrediction.html
+- Unzipped downloaded data in data directory, needed to download larger 
+  files individually to avoid corruption
+- There was an extra Striped_A-Line-dress directory. It causes problems
+  unzipping on Mac and appears to not be described in the label info.
+  The version with the uppercase L in its name was removed. 
+- Download the ImageNet class definitions to match up types
+  with DeepFashion. Store in data/ImageNetClasses

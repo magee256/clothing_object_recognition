@@ -1,0 +1,85 @@
+\documentclass[a4paper]{article}
+
+\usepackage[letterpaper, portrait, margin=1in]{geometry}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsxtra}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{verbatim}
+\usepackage{forloop}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{float}
+\usepackage[ruled]{algorithm2e}
+
+\newlength\tindent
+\setlength{\tindent}{\parindent}
+\setlength{\parindent}{0pt}
+\renewcommand{\indent}{\hspace*{\tindent}}
+
+\newcommand{\ncut}{$N_{cut}(A,B)$}
+
+\title{Normalized Cuts Notes}
+
+\author{Matt Agee}
+
+\date{\today}
+
+\begin{document}
+
+Read through: https://people.eecs.berkeley.edu/~malik/papers/SM-ncut.pdf
+for this\\
+
+Normalized cuts is a graph based algorithm for dividing an image into segments.
+The nodes used in the algorithm are pixels (or superpixels) and the edges
+connect them to their neighboring pixels. The weights of those edges are
+determined based on some similarity metric. 
+
+The value we attempt to minimize for normalized cuts is:
+\begin{equation*}
+    N_{cut}(A,B) = \frac{cut(A,B)}{assoc(A,V)} + \frac{cut(A,B)}{assoc(B,V)}
+\end{equation*}
+
+where we have 
+\begin{align*}
+    cut(A,B) = \sum_{u \in A, v \in B} w(u,v) &
+    \indent &
+    assoc(A,V) = \sum_{u \in A, t \in V} w(u,t)
+\end{align*}
+
+A and B are a subset of nodes in the full graph V w/ $A \cup B = V$. \\
+
+Finding A and B minimizing \ncut provides a good segmentation
+of the image represented by V. By repeatedly segmenting each susbequent 
+segment we generate a set of regions for our image that can later be
+used for object proposal. \\
+
+To minimizing procedure can be turned into an eigenvalue problem for a 
+Rayleigh quotient as follows:
+\begin{equation*}
+    min_x N_{cut}(x) = min_y \frac{y^T(D - W)y}{y^TDy}
+\end{equation*}
+where D is the degree matrix of V, W the association matrix, x a mask vector
+defining A and B (with 1 values corresponding to A and -1 to B) and y
+defined as:
+\begin{align*}
+    y = (1 + x) - b(1 - x) &
+    \indent &
+    k = \frac{\sum_{x_i > 0} d_i}{\sum_i d_i} &
+    \indent &
+    b = \frac{k}{1-k} = \frac{\sum_{x_i > 0} d_i}{\sum_{x_i < 0} d_i}
+\end{align*}
+where the $d_i$ are the diagonal entries of the degree matrix. In theory
+y should take on discrete values, but in order to solve the problem we 
+must approximate it as continuous. This causes there to be some ambiguity
+in the values for x, causing us to make a judgment call as to how to 
+partition the values. \\
+
+Once we get our regions, we can go back and weight the boundaries via
+their cut values normalized by boundary length. This can then be used 
+as a thresholding criteria for defining a hierarchy of regions. 
+
+\end{document}
