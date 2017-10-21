@@ -7,3 +7,5 @@
   The version with the uppercase L in its name was removed. 
 - Download the ImageNet class definitions to match up types
   with DeepFashion. Store in data/ImageNetClasses
+- The categorical_cross_entropy loss function was reduced to near zero but
+  with no increase in accuracy for the network
