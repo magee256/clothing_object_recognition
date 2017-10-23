@@ -74,7 +74,7 @@ def cut_threshold(labels, rag, thresh, in_place=True):
     return map_array[labels]
 
 
-def cut_normalized(labels, rag, thresh=0.001, num_cuts=10, in_place=True,
+def cut_normalized(labels, rag, thresh=[0.001], num_cuts=10, in_place=True,
                    max_edge=1.0):
     """Perform Normalized Graph cut on the Region Adjacency Graph.
 
@@ -89,9 +89,9 @@ def cut_normalized(labels, rag, thresh=0.001, num_cuts=10, in_place=True,
         The array of labels.
     rag : RAG
         The region adjacency graph.
-    thresh : float
-        The threshold. A subgraph won't be further subdivided if the
-        value of the N-cut exceeds `thresh`.
+    thresh : list
+        List of threshold values to compute. A subgraph won't be further 
+        subdivided if the value of the N-cut exceeds a threshold value. 
     num_cuts : int
         The number or N-cuts to perform before determining the optimal one.
     in_place : bool
@@ -130,10 +130,8 @@ def cut_normalized(labels, rag, thresh=0.001, num_cuts=10, in_place=True,
         rag.add_edge(node, node, weight=max_edge)
 
     # Threshold values must be in ascending order
-    # May make sense to implement a function that updates cur_thresh
-    # until a minimum number of regions is found. 
     thresh = sorted(thresh)
-    cur_thresh = [thresh[0]]
+    cur_thresh = [0]
     ncut_gen = _ncut_relabel(rag, cur_thresh, num_cuts)
     for t in thresh:
         cur_thresh[0] = t
@@ -258,7 +256,7 @@ def _ncut_relabel(rag, thresh, num_cuts):
         The array of labels.
     rag : RAG
         The region adjacency graph.
-    thresh : float
+    thresh : list
         The threshold specified as a single element list. 
         A subgraph won't be further subdivided if the value of the 
         N-cut exceeds `thresh`.
