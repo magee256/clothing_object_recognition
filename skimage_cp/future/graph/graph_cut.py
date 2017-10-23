@@ -214,7 +214,7 @@ def get_min_ncut(ev, d, w, num_cuts):
     if np.allclose(mn, mx):
         return min_mask, mcut
 
-    # Refer Shi & Malik 2001, Section 3.1.3, Page 892
+    # Refer Shi & Malik 2000, Section 3.1.3, Page 892
     # Perform evenly spaced n-cuts and determine the optimal one.
     for t in np.linspace(mn, mx, num_cuts, endpoint=False):
         mask = ev > t
@@ -268,45 +268,40 @@ def _ncut_relabel(rag, thresh, num_cuts):
         The array which maps old labels to new ones. This is modified inside
         the function.
     """
-
-    # This code references Shi and Malik 2000 not 2001
     d, w = _ncut.DW_matrices(rag)
     m = w.shape[0]
 
-    # Greater than? Shouldn't 2 be min?
-    if m > 2:
+    if m > 1:
         d2 = d.copy()
         # Since d is diagonal, we can directly operate on its data
         # the inverse of the square root
         d2.data = np.reciprocal(np.sqrt(d2.data, out=d2.data), out=d2.data)
 
-        # Refer Shi & Malik 2001, Equation 7, Page 891
+        # Refer Shi & Malik 2000, Equation 7, Page 891
         # Only the first two eigenpairs are actually needed. 
-        # This calculates the max number of Lanczos vectors 
-        # unless m > 2*100 + 1
-        # Should be able to reduce
-        vals, vectors = linalg.eigsh(d2 * (d - w) * d2, which='SM',
-                                     k=min(100, m - 2))
+        # This will calculate 20 Lanczos vectors regardless of graph size
+        vals, vectors = linalg.eigsh(d2 * (d - w) * d2, which='SM',k=2)
 
         # Pick second smallest eigenvector.
-        # Refer Shi & Malik 2001, Section 3.2.3, Page 893
+        # Refer Shi & Malik 2000, Section 3.2.3, Page 893
         vals, vectors = np.real(vals), np.real(vectors)
-        index2 = _ncut_cy.argmin2(vals)
         # I'm pretty sure the Lanczos algorithm 
         # automatically orders vals and vectors in ascending order.
-        # Where to check that?
-        ev = vectors[:, index2]
+        # Of course it does. We ask for the first n (in magnitude)
+        # it needs to sort them to figure out which are the first n. 
+        # Why would it shuffle them later?
+        ev = vectors[:,1]
 
         cut_mask, mcut = get_min_ncut(ev, d, w, num_cuts)
 
         # mcut exceeded thresh. Update the labels in the subgraph
-        # specified by rag and wait until thresh rises above mcut
+        # and wait until thresh rises above mcut
         if (mcut >= thresh[0]):
             _label_all(rag, 'ncut label')
         while (mcut >= thresh[0]): 
             yield
 
-        # Prepare _ncut_relabel generators for sub graphs
+        # Prepare _ncut_relabel generators for subgraphs
         sub1, sub2 = partition_by_cut(cut_mask, rag)
         branch1 = _ncut_relabel(sub1, thresh, num_cuts)
         branch2 = _ncut_relabel(sub2, thresh, num_cuts)
