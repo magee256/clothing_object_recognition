@@ -279,17 +279,11 @@ def _ncut_relabel(rag, thresh, num_cuts):
 
         # Refer Shi & Malik 2000, Equation 7, Page 891
         # Only the first two eigenpairs are actually needed. 
-        # This will calculate 20 Lanczos vectors regardless of graph size
         vals, vectors = linalg.eigsh(d2 * (d - w) * d2, which='SM',k=2)
 
         # Pick second smallest eigenvector.
         # Refer Shi & Malik 2000, Section 3.2.3, Page 893
         vals, vectors = np.real(vals), np.real(vectors)
-        # I'm pretty sure the Lanczos algorithm 
-        # automatically orders vals and vectors in ascending order.
-        # Of course it does. We ask for the first n (in magnitude)
-        # it needs to sort them to figure out which are the first n. 
-        # Why would it shuffle them later?
         ev = vectors[:,1]
 
         cut_mask, mcut = get_min_ncut(ev, d, w, num_cuts)
