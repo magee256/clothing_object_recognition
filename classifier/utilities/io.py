@@ -2,6 +2,10 @@
 from skimage.io import imread # uses PIL on the backend
 from skimage.io import imsave
 
+import numpy as np
+import pandas as pd
+from functools import partial
+
 # Needed to apply preprocessing to labels. 
 # I don't like introducing model dependent processing to Labels.
 # Consider simplifying __next__ and transferring responsibiility elsewhere
@@ -13,13 +17,12 @@ class Labels():
     """
     Manages saving and loading for all data
     """
-    def __init__(self,labels_info,image_path_prefix, n_image_loaded):
+    def __init__(self,labels_info,image_path_prefix, n_images_loaded):
         self.n_top_labels = 10 # n most frequent labels
         self.image_path_prefix = image_path_prefix
         self.iter_df = True
         if isinstance(labels_info,str):
-            self.labels =
-            self._determine_data_subset(labels_info,
+            self.labels = self._determine_data_subset(labels_info,
                                         self.n_top_labels,n_images_loaded)
             
             # Reduce image_paths to their base form
@@ -39,9 +42,7 @@ class Labels():
                             ' {} to Labels instance'.format(type(other)))
         # Model name goes first, image variations go last
         out_labels = self.labels.append(other.labels).reset_index(drop=True)
-        
         return Labels(out_labels,self.image_path_prefix)
-        
 
     def __next__(self):
         """
@@ -65,7 +66,7 @@ class Labels():
         else:
             # This form is most convenient when feeding to models
             subset['data'] = subset['data'].apply(self.preproc_data)
-            return np.stack(subset['data'].values),
+            return np.stack(subset['data'].values), \
                             np.stack(subset['category_label'].values)
     
     @staticmethod

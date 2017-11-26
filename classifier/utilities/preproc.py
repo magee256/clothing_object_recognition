@@ -1,8 +1,10 @@
+import numpy as np
 from skimage.transform import rescale
 
 def preprocess_data(img_df):
     img_df['data'] = scale_images(img_df['data'])
-    img_df['data'] = fill_image(img_df['data'])
+    img_df['data'] = pad_images(img_df['data'])
+    img_df['data'] = crop_images(img_df['data'])
     return img_df
 
 def scale_images(img_series):
