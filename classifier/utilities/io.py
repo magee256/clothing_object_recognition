@@ -17,10 +17,11 @@ class Labels():
     """
     Manages saving and loading for all data
     """
-    def __init__(self,labels_info,image_path_prefix, n_images_loaded):
+    def __init__(self,labels_info, image_path_prefix, n_images_loaded):
         self.n_top_labels = 10 # n most frequent labels
         self.image_path_prefix = image_path_prefix
         self.iter_df = True
+        self.n_images_loaded = n_images_loaded
         if isinstance(labels_info,str):
             self.labels = self._determine_data_subset(labels_info,
                                         self.n_top_labels,n_images_loaded)
@@ -40,9 +41,12 @@ class Labels():
         if not isinstance(other,Labels):
             raise TypeError('Could not add object of type'
                             ' {} to Labels instance'.format(type(other)))
+        if not self.n_images_loaded == other.n_images_loaded:
+            raise ValueError('Labels objects set for differing numbers of'
+                             ' images to load.')
         # Model name goes first, image variations go last
         out_labels = self.labels.append(other.labels).reset_index(drop=True)
-        return Labels(out_labels,self.image_path_prefix)
+        return Labels(out_labels,self.image_path_prefix,self.n_images_loaded)
 
     def __next__(self):
         """
@@ -70,7 +74,7 @@ class Labels():
                             np.stack(subset['category_label'].values)
     
     @staticmethod
-    def _determine_data_subset(labels_path,n_top_labels,n_images_loaded):
+    def _determine_data_subset(labels_path,n_top_labels, n_images_loaded):
         # Read in the attribute information to figure out what images to load
         cat_labels = pd.read_csv(labels_path,skiprows=1,sep='\s+')
         
